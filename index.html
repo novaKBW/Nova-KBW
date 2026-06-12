@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA: KBW — Kaun Banega Winner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --black: #080808;
+    --black-2: #111111;
+    --black-3: #1C1C1C;
+    --black-4: #252525;
+    --red: #CC0000;
+    --red-dark: #990000;
+    --red-glow: rgba(204,0,0,0.25);
+    --white: #FFFFFF;
+    --white-muted: #A0A0A0;
+    --white-dim: #505050;
+    --border: #2A2A2A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ===== AUTH SCREENS ===== */
+  .auth-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+  }
+  .auth-bg-pattern {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(204,0,0,0.08) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 79px, var(--border) 79px, var(--border) 80px),
+      repeating-linear-gradient(90deg, transparent, transparent 79px, var(--border) 79px, var(--border) 80px);
+  }
+  .auth-card {
+    background: var(--black-2);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(204,0,0,0.08);
+  }
+  .nova-logo {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--white);
+  }
+  .nova-logo span { color: var(--red); }
+  .nova-sub {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--white-muted);
+    margin-top: 0.35rem;
+  }
+  .form-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--white-muted);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--black-3);
+    border: 1px solid var(--border);
+    border-radius: 0.625rem;
+    padding: 0.85rem 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--white);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-input:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px var(--red-glow);
+  }
+  .form-input::placeholder { color: var(--white-dim); }
+  .btn-primary {
+    width: 100%;
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    border-radius: 0.625rem;
+    padding: 0.9rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  }
+  .btn-primary:hover {
+    background: #DD0000;
+    box-shadow: 0 4px 20px rgba(204,0,0,0.4);
+  }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: #550000; cursor: not-allowed; opacity: 0.6; }
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+  .otp-hint {
+    background: rgba(204,0,0,0.08);
+    border: 1px solid rgba(204,0,0,0.2);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: var(--white-muted);
+  }
+  .otp-hint strong { color: var(--red); }
+
+  /* ===== DASHBOARD ===== */
+  #screen-dashboard {
+    background: var(--black);
+  }
+  .dashboard-header {
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0;
+    background: rgba(8,8,8,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 10;
+    gap: 0.75rem;
+  }
+  .profile-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--black-3);
+    border: 1px solid var(--border);
+    border-radius: 3rem;
+    padding: 0.4rem 1rem 0.4rem 0.4rem;
+  }
+  .profile-avatar {
+    width: 2rem; height: 2rem;
+    background: var(--red);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800;
+    color: white; flex-shrink: 0;
+  }
+  .profile-name { font-size: 0.82rem; font-weight: 600; }
+  .profile-meta { font-size: 0.7rem; color: var(--white-muted); }
+  .score-badge {
+    background: var(--black-3);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    text-align: center;
+  }
+  .score-value { font-size: 1.25rem; font-weight: 800; color: var(--red); line-height: 1; }
+  .score-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white-muted); }
+  .dashboard-hero {
+    padding: 1.5rem 1.25rem 1rem;
+    text-align: center;
+  }
+  .dashboard-title {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .dashboard-title span { color: var(--red); }
+  .dashboard-subtitle { font-size: 0.85rem; color: var(--white-muted); margin-top: 0.5rem; }
+  .levels-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.5rem 1.25rem 2.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .level-card {
+    background: var(--black-2);
+    border: 1px solid var(--border);
+    border-radius: 0.875rem;
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+  .level-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .level-card.unlocked:hover {
+    border-color: #444;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  .level-card.unlocked:hover::before { transform: scaleX(1); }
+  .level-card.completed { border-color: #2A3A2A; }
+  .level-card.completed::before { transform: scaleX(1); background: #22C55E; }
+  .level-card.locked { opacity: 0.4; cursor: not-allowed; }
+  .level-card.current { border-color: rgba(204,0,0,0.4); box-shadow: 0 0 20px rgba(204,0,0,0.1); }
+  .level-card.current::before { transform: scaleX(1); animation: pulse-bar 2s ease-in-out infinite; }
+  @keyframes pulse-bar {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .level-num {
+    font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--white-dim); margin-bottom: 0.5rem;
+  }
+  .level-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .level-desc { font-size: 0.78rem; color: var(--white-muted); line-height: 1.4; }
+  .level-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .level-status {
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .status-locked { color: var(--white-dim); }
+  .status-unlocked { color: #F59E0B; }
+  .status-current { color: var(--red); }
+  .status-completed { color: #22C55E; }
+  .level-score { font-size: 0.85rem; font-weight: 700; color: var(--white-muted); }
+  .level-score span { color: var(--white); }
+  .lock-icon { font-size: 1rem; }
+
+  /* ===== QUIZ SCREEN ===== */
+  #screen-quiz {
+    background: var(--black);
+    position: relative;
+  }
+  .quiz-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--black-2);
+    flex-wrap: wrap;
+  }
+  .quiz-level-badge {
+    background: var(--red);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 0.375rem;
+    padding: 0.3rem 0.7rem;
+    flex-shrink: 0;
+  }
+  .quiz-progress-wrap { flex: 1; min-width: 120px; }
+  .quiz-progress-label {
+    font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--white-muted); margin-bottom: 0.35rem;
+  }
+  .quiz-progress-bar {
+    height: 4px;
+    background: var(--black-4);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .quiz-progress-fill {
+    height: 100%;
+    background: var(--red);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .quiz-timer-wrap { text-align: right; flex-shrink: 0; }
+  .quiz-timer {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--white);
+    transition: color 0.3s;
+  }
+  .quiz-timer.warning { color: #F59E0B; }
+  .quiz-timer.danger { color: var(--red); animation: tick 1s ease infinite; }
+  @keyframes tick {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  .quiz-timer-label {
+    font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--white-muted);
+  }
+  .quiz-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .question-number {
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--red); margin-bottom: 1.25rem;
+    align-self: flex-start;
+  }
+  .question-text {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    font-weight: 700;
+    line-height: 1.55;
+    color: var(--white);
+    margin-bottom: 2rem;
+    align-self: flex-start;
+    width: 100%;
+  }
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  @media (max-width: 500px) { .options-grid { grid-template-columns: 1fr; } }
+  .option-btn {
+    background: var(--black-3);
+    border: 1.5px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1rem 1.125rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: #555;
+    background: var(--black-4);
+    transform: scale(1.01);
+  }
+  .option-letter {
+    width: 1.6rem; height: 1.6rem;
+    border: 1.5px solid var(--border);
+    border-radius: 0.35rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 800;
+    color: var(--white-muted);
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .option-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--white);
+    line-height: 1.4;
+    padding-top: 0.1rem;
+  }
+  .option-btn.selected {
+    border-color: var(--red);
+    background: rgba(204,0,0,0.08);
+  }
+  .option-btn.selected .option-letter {
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
+  }
+  .option-btn.correct {
+    border-color: #22C55E;
+    background: rgba(34,197,94,0.08);
+  }
+  .option-btn.correct .option-letter {
+    background: #22C55E;
+    border-color: #22C55E;
+    color: white;
+  }
+  .option-btn.wrong {
+    border-color: var(--red);
+    background: rgba(204,0,0,0.1);
+  }
+  .option-btn.wrong .option-letter {
+    background: var(--red);
+    border-color: var(--red);
+    color: white;
+  }
+  .option-btn:disabled { cursor: not-allowed; }
+  .quiz-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .quiz-score-live {
+    font-size: 0.8rem; font-weight: 500; color: var(--white-muted);
+  }
+  .quiz-score-live strong { color: var(--white); font-weight: 700; }
+  .btn-next {
+    background: var(--black-3);
+    border: 1.5px solid var(--border);
+    border-radius: 0.625rem;
+    padding: 0.7rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--white);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-next:hover { border-color: var(--red); background: rgba(204,0,0,0.06); }
+  .btn-next.active-next { background: var(--red); border-color: var(--red); }
+  .btn-next.active-next:hover { background: #DD0000; }
+
+  /* ===== RESULT SCREEN ===== */
+  #screen-result { background: var(--black); }
+  .result-container {
+    flex: 1;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+    width: 100%;
+  }
+  .result-header { margin-bottom: 2rem; }
+  .result-outcome {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+  }
+  .result-outcome.pass { color: var(--white); }
+  .result-outcome.fail { color: var(--red); }
+  .result-meta { font-size: 0.85rem; color: var(--white-muted); margin-top: 0.5rem; }
+  .result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--black-2);
+    border: 1px solid var(--border);
+    border-radius: 0.875rem;
+    padding: 1.25rem 1rem;
+    text-align: center;
+  }
+  .stat-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+  .stat-label {
+    font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--white-muted); margin-top: 0.35rem;
+  }
+  .stat-value.green { color: #22C55E; }
+  .stat-value.red { color: var(--red); }
+  .result-answers { margin-bottom: 2rem; }
+  .result-answers-title {
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--white-muted); margin-bottom: 1rem;
+  }
+  .answer-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--black-2);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .answer-dot {
+    width: 1.4rem; height: 1.4rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 800;
+    margin-top: 0.1rem;
+  }
+  .answer-dot.correct { background: #22C55E; color: white; }
+  .answer-dot.wrong { background: var(--red); color: white; }
+  .answer-q { font-size: 0.85rem; font-weight: 500; line-height: 1.45; color: var(--white); }
+  .answer-detail {
+    font-size: 0.75rem; margin-top: 0.3rem; line-height: 1.4;
+  }
+  .answer-detail .your { color: var(--red); }
+  .answer-detail .right { color: #22C55E; }
+  .result-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .btn-secondary {
+    flex: 1;
+    background: var(--black-2);
+    border: 1.5px solid var(--border);
+    border-radius: 0.625rem;
+    padding: 0.85rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--white);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    min-width: 140px;
+    text-align: center;
+  }
+  .btn-secondary:hover { border-color: var(--red); background: rgba(204,0,0,0.06); }
+
+  /* ===== ENTER ANIMATION ===== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.35s ease forwards; }
+  .fade-up-delay { animation: fadeUp 0.35s 0.12s ease both; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--black-3);
+    border: 1px solid var(--border);
+    border-radius: 0.625rem;
+    padding: 0.7rem 1.25rem;
+    font-size: 0.82rem; font-weight: 500;
+    color: var(--white);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { border-color: rgba(204,0,0,0.5); color: #FF6666; }
+  .toast.success { border-color: rgba(34,197,94,0.4); color: #4ADE80; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== SCREEN: MOBILE ===================== -->
+<div id="screen-mobile" class="screen active">
+  <div class="auth-bg-pattern"></div>
+  <div class="auth-container">
+    <div class="auth-card fade-up">
+      <div class="nova-logo">NOVA<span>:</span>KBW</div>
+      <div class="nova-sub">Kaun Banega Winner</div>
+      <div class="divider"></div>
+      <div style="margin-bottom:1.5rem;">
+        <label class="form-label">मोबाइल नंबर दर्ज करें</label>
+        <input id="mobile-input" class="form-input" type="tel" maxlength="10" placeholder="10 अंकों का नंबर" inputmode="numeric">
+      </div>
+      <button class="btn-primary" onclick="sendOTP()">OTP भेजें →</button>
+      <div style="margin-top:1.25rem;" class="otp-hint">
+        Demo के लिए OTP: <strong>123456</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: OTP ===================== -->
+<div id="screen-otp" class="screen">
+  <div class="auth-bg-pattern"></div>
+  <div class="auth-container">
+    <div class="auth-card fade-up">
+      <div class="nova-logo">NOVA<span>:</span>KBW</div>
+      <div class="nova-sub">Kaun Banega Winner</div>
+      <div class="divider"></div>
+      <p style="font-size:0.82rem;color:var(--white-muted);margin-bottom:1.5rem;line-height:1.6;">
+        <span id="otp-phone-display"></span> पर OTP भेजा गया है।
+      </p>
+      <div style="margin-bottom:1.5rem;">
+        <label class="form-label">OTP दर्ज करें</label>
+        <input id="otp-input" class="form-input" type="text" maxlength="6" placeholder="6 अंकों का कोड" inputmode="numeric">
+      </div>
+      <button class="btn-primary" onclick="verifyOTP()">जाँचें और आगे बढ़ें →</button>
+      <div style="margin-top:1rem;text-align:center;">
+        <button onclick="showScreen('screen-mobile')" style="background:none;border:none;color:var(--white-muted);font-size:0.8rem;cursor:pointer;font-family:Inter,sans-serif;">← वापस जाएं</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: PROFILE ===================== -->
+<div id="screen-profile" class="screen">
+  <div class="auth-bg-pattern"></div>
+  <div class="auth-container">
+    <div class="auth-card fade-up">
+      <div class="nova-logo">NOVA<span>:</span>KBW</div>
+      <div class="nova-sub">प्रोफाइल बनाएं</div>
+      <div class="divider"></div>
+      <div style="margin-bottom:1.25rem;">
+        <label class="form-label">आपका नाम</label>
+        <input id="profile-name" class="form-input" type="text" placeholder="पूरा नाम लिखें">
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <label class="form-label">आपकी उम्र</label>
+        <input id="profile-age" class="form-input" type="number" min="10" max="100" placeholder="उम्र दर्ज करें" inputmode="numeric">
+      </div>
+      <button class="btn-primary" onclick="saveProfile()">प्रतियोगिता शुरू करें →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: DASHBOARD ===================== -->
+<div id="screen-dashboard" class="screen">
+  <header class="dashboard-header">
+    <div class="nova-logo" style="font-size:1.4rem;">NOVA<span>:</span>KBW</div>
+    <div id="profile-chip-wrap"></div>
+    <div class="score-badge">
+      <div class="score-value" id="total-score-display">0</div>
+      <div class="score-label">कुल स्कोर</div>
+    </div>
+  </header>
+  <div class="dashboard-hero">
+    <div class="dashboard-title">सामान्य ज्ञान<br><span>प्रतियोगिता</span></div>
+    <div class="dashboard-subtitle">10 स्तर · 100 प्रश्न · प्रत्येक स्तर में 10 प्रश्न</div>
+  </div>
+  <div class="levels-grid" id="levels-grid"></div>
+</div>
+
+<!-- ===================== SCREEN: QUIZ ===================== -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-level-badge" id="quiz-level-badge">स्तर 1</div>
+    <div class="quiz-progress-wrap">
+      <div class="quiz-progress-label">प्रश्न <span id="q-current">1</span> / 10</div>
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="q-progress-fill" style="width:10%"></div></div>
+    </div>
+    <div class="quiz-timer-wrap">
+      <div class="quiz-timer" id="quiz-timer">05:00</div>
+      <div class="quiz-timer-label">बचा समय</div>
+    </div>
+  </div>
+  <div class="quiz-main" id="quiz-main"></div>
+  <div class="quiz-footer">
+    <div class="quiz-score-live">सही: <strong id="live-correct">0</strong> &nbsp;·&nbsp; गलत: <strong id="live-wrong">0</strong></div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>अगला →</button>
+  </div>
+</div>
+
+<!-- ===================== SCREEN: RESULT ===================== -->
+<div id="screen-result" class="screen">
+  <div class="result-container" id="result-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== DATA =====================
+const LEVELS = [
+  { title: "प्राचीन भारत", desc: "सिंधु घाटी से मौर्य साम्राज्य तक" },
+  { title: "मध्यकालीन भारत", desc: "दिल्ली सल्तनत और मुगल काल" },
+  { title: "स्वतंत्रता संग्राम", desc: "1857 से 1947 तक की यात्रा" },
+  { title: "आधुनिक भारत", desc: "स्वतंत्र भारत की नींव और संविधान" },
+  { title: "भारत का भूगोल", desc: "नदियाँ, पर्वत, और राज्य" },
+  { title: "विश्व भूगोल", desc: "महाद्वीप, महासागर, और देश" },
+  { title: "भारतीय संस्कृति", desc: "कला, साहित्य, और परंपराएं" },
+  { title: "विज्ञान और पर्यावरण", desc: "मूलभूत वैज्ञानिक तथ्य" },
+  { title: "भारतीय राजनीति", desc: "संविधान और शासन व्यवस्था" },
+  { title: "समसामयिक घटनाएं", desc: "हाल की महत्वपूर्ण खबरें" }
+];
+
+const ALL_QUESTIONS = [
+  // Level 1 — प्राचीन भारत (0–9)
+  { q: "सिंधु घाटी सभ्यता के प्रमुख नगर कौन से थे?", opts: ["मोहनजोदड़ो और हड़प्पा","वाराणसी और पटना","दिल्ली और आगरा","मथुरा और वृंदावन"], ans: 0 },
+  { q: "मौर्य साम्राज्य की स्थापना किसने की थी?", opts: ["अशोक","चंद्रगुप्त मौर्य","बिंदुसार","समुद्रगुप्त"], ans: 1 },
+  { q: "अशोक ने किस युद्ध के बाद बौद्ध धर्म अपनाया?", opts: ["तराइन का युद्ध","कलिंग युद्ध","पानीपत का युद्ध","हल्दीघाटी का युद्ध"], ans: 1 },
+  { q: "'अर्थशास्त्र' नामक ग्रंथ किसने लिखा?", opts: ["विष्णुगुप्त चाणक्य","कालिदास","वाल्मीकि","मनु"], ans: 0 },
+  { q: "गुप्त साम्राज्य का स्वर्णकाल किस शासक के काल में था?", opts: ["चंद्रगुप्त प्रथम","स्कंदगुप्त","समुद्रगुप्त","चंद्रगुप्त द्वितीय"], ans: 3 },
+  { q: "'आयुर्वेद के जनक' किसे कहा जाता है?", opts: ["सुश्रुत","चरक","धन्वंतरि","भास्कराचार्य"], ans: 2 },
+  { q: "नालंदा विश्वविद्यालय किस वंश के काल में स्थापित हुआ?", opts: ["मौर्य वंश","कुषाण वंश","गुप्त वंश","पाल वंश"], ans: 2 },
+  { q: "सिंधु घाटी सभ्यता किस नदी के किनारे विकसित हुई?", opts: ["गंगा","यमुना","सिंधु","ब्रह्मपुत्र"], ans: 2 },
+  { q: "महाभारत की रचना किसने की?", opts: ["वाल्मीकि","वेद व्यास","तुलसीदास","कालिदास"], ans: 1 },
+  { q: "बौद्ध धर्म के संस्थापक गौतम बुद्ध का जन्म कहाँ हुआ था?", opts: ["बोधगया","सारनाथ","कुशीनगर","लुंबिनी"], ans: 3 },
+
+  // Level 2 — मध्यकालीन भारत (10–19)
+  { q: "दिल्ली सल्तनत की स्थापना किसने की?", opts: ["कुतुबुद्दीन ऐबक","बाबर","अकबर","अलाउद्दीन खिलजी"], ans: 0 },
+  { q: "अकबर का प्रसिद्ध नवरत्न में से एक कौन था?", opts: ["राणा प्रताप","तानसेन","शिवाजी","मीराबाई"], ans: 1 },
+  { q: "ताजमहल का निर्माण किसने करवाया?", opts: ["अकबर","जहाँगीर","शाहजहाँ","औरंगजेब"], ans: 2 },
+  { q: "पानीपत की पहली लड़ाई (1526) किसके बीच हुई?", opts: ["बाबर और इब्राहीम लोदी","हुमायूँ और शेरशाह","अकबर और हेमू","बाबर और राणा सांगा"], ans: 0 },
+  { q: "विजयनगर साम्राज्य की राजधानी क्या थी?", opts: ["गोलकुंडा","हम्पी","बीजापुर","मैसूर"], ans: 1 },
+  { q: "मुगल वंश का अंतिम शासक कौन था?", opts: ["औरंगजेब","बहादुर शाह जफर","शाह आलम","फर्रुखसियर"], ans: 1 },
+  { q: "शेरशाह सूरी ने कौन सी प्रसिद्ध सड़क बनवाई?", opts: ["ग्रैंड ट्रंक रोड","राजपथ","आगरा रोड","सिल्क रूट"], ans: 0 },
+  { q: "भक्ति आंदोलन के प्रमुख संत कबीर किस शहर से थे?", opts: ["आगरा","वाराणसी","अयोध्या","मथुरा"], ans: 1 },
+  { q: "चित्तौड़गढ़ का जौहर किस रानी से जुड़ा है?", opts: ["रानी लक्ष्मीबाई","रानी पद्मावती","रानी दुर्गावती","रानी अहिल्याबाई"], ans: 1 },
+  { q: "भारत में यूरोपीय व्यापार का पहला केंद्र कहाँ था?", opts: ["गोवा","कालीकट","सूरत","पांडिचेरी"], ans: 1 },
+
+  // Level 3 — स्वतंत्रता संग्राम (20–29)
+  { q: "1857 की क्रांति का पहला विद्रोह कहाँ से शुरू हुआ?", opts: ["दिल्ली","मेरठ","कानपुर","लखनऊ"], ans: 1 },
+  { q: "भारतीय राष्ट्रीय कांग्रेस की स्थापना कब हुई?", opts: ["1857","1885","1905","1920"], ans: 1 },
+  { q: "महात्मा गाँधी ने दांडी मार्च कब किया?", opts: ["1920","1925","1930","1942"], ans: 2 },
+  { q: "'करो या मरो' का नारा किसने दिया?", opts: ["जवाहरलाल नेहरू","महात्मा गाँधी","बाल गंगाधर तिलक","सुभाष चंद्र बोस"], ans: 1 },
+  { q: "जलियाँवाला बाग हत्याकांड कब हुआ?", opts: ["1915","1917","1919","1921"], ans: 2 },
+  { q: "भारत छोड़ो आंदोलन कब शुरू हुआ?", opts: ["1940","1942","1944","1946"], ans: 1 },
+  { q: "आजाद हिंद फौज की स्थापना किसने की?", opts: ["भगत सिंह","चंद्रशेखर आजाद","सुभाष चंद्र बोस","लाला लाजपत राय"], ans: 2 },
+  { q: "भारत को स्वतंत्रता किस तारीख को मिली?", opts: ["15 अगस्त 1947","26 जनवरी 1950","15 अगस्त 1950","26 जनवरी 1947"], ans: 0 },
+  { q: "स्वतंत्र भारत के प्रथम प्रधानमंत्री कौन थे?", opts: ["महात्मा गाँधी","सरदार पटेल","जवाहरलाल नेहरू","राजेंद्र प्रसाद"], ans: 2 },
+  { q: "भगत सिंह को फाँसी कब दी गई?", opts: ["1929","1930","1931","1932"], ans: 2 },
+
+  // Level 4 — आधुनिक भारत (30–39)
+  { q: "भारतीय संविधान कब लागू हुआ?", opts: ["15 अगस्त 1947","26 जनवरी 1950","26 नवंबर 1949","2 अक्टूबर 1950"], ans: 1 },
+  { q: "भारतीय संविधान के मुख्य निर्माता कौन थे?", opts: ["जवाहरलाल नेहरू","महात्मा गाँधी","डॉ. भीमराव अंबेडकर","सरदार पटेल"], ans: 2 },
+  { q: "भारत का राष्ट्रीय चिह्न क्या है?", opts: ["अशोक चक्र","सारनाथ का सिंह स्तंभ","तिरंगा","कमल"], ans: 1 },
+  { q: "भारत का राष्ट्रीय पशु कौन है?", opts: ["हाथी","शेर","बाघ","मोर"], ans: 2 },
+  { q: "भारत का राष्ट्रगान किसने लिखा?", opts: ["रवींद्रनाथ टैगोर","बंकिम चंद्र चटर्जी","सुभाष चंद्र बोस","महात्मा गाँधी"], ans: 0 },
+  { q: "हरित क्रांति (Green Revolution) के जनक कौन हैं?", opts: ["एम.एस. स्वामीनाथन","जगदीश चंद्र बोस","सी.वी. रमन","ए.पी.जे. अब्दुल कलाम"], ans: 0 },
+  { q: "भारत ने पहला परमाणु परीक्षण कब किया?", opts: ["1968","1971","1974","1980"], ans: 2 },
+  { q: "भारत में पंचायती राज व्यवस्था किस अनुच्छेद में है?", opts: ["अनुच्छेद 40","अनुच्छेद 243","अनुच्छेद 312","अनुच्छेद 356"], ans: 1 },
+  { q: "भारत के पहले राष्ट्रपति कौन थे?", opts: ["जवाहरलाल नेहरू","सर्वपल्ली राधाकृष्णन","राजेंद्र प्रसाद","जाकिर हुसैन"], ans: 2 },
+  { q: "ऑपरेशन फ्लड किससे संबंधित है?", opts: ["सिंचाई","दूध उत्पादन","बाढ़ नियंत्रण","वन संरक्षण"], ans: 1 },
+
+  // Level 5 — भारत का भूगोल (40–49)
+  { q: "भारत की सबसे लंबी नदी कौन सी है?", opts: ["यमुना","सिंधु","गंगा","गोदावरी"], ans: 2 },
+  { q: "भारत का सबसे बड़ा राज्य (क्षेत्रफल में) कौन सा है?", opts: ["उत्तर प्रदेश","मध्यप्रदेश","राजस्थान","महाराष्ट्र"], ans: 2 },
+  { q: "भारत की सबसे ऊँची चोटी कौन सी है?", opts: ["नंदादेवी","K2","कंचनजंगा","माउंट एवरेस्ट"], ans: 2 },
+  { q: "सुंदरबन किस राज्य में स्थित है?", opts: ["ओडिशा","पश्चिम बंगाल","आंध्र प्रदेश","तमिलनाडु"], ans: 1 },
+  { q: "भारत में कितने राज्य हैं?", opts: ["25","27","28","29"], ans: 2 },
+  { q: "भारत का सबसे लंबा राष्ट्रीय राजमार्ग कौन सा है?", opts: ["NH 44","NH 7","NH 2","NH 27"], ans: 0 },
+  { q: "लक्षद्वीप किस सागर में स्थित है?", opts: ["बंगाल की खाड़ी","अरब सागर","हिंद महासागर","प्रशांत महासागर"], ans: 1 },
+  { q: "पश्चिमी घाट और पूर्वी घाट का मिलन कहाँ होता है?", opts: ["नीलगिरि में","सह्याद्री में","विंध्य में","अरावली में"], ans: 0 },
+  { q: "भारत की सबसे बड़ी झील कौन सी है?", opts: ["डल झील","चिलिका झील","वुलर झील","लोकटक झील"], ans: 2 },
+  { q: "भारत का सबसे दक्षिणी बिंदु कौन सा है?", opts: ["कन्याकुमारी","इंदिरा पॉइंट","रामेश्वरम","त्रिवेंद्रम"], ans: 1 },
+
+  // Level 6 — विश्व भूगोल (50–59)
+  { q: "विश्व का सबसे बड़ा महाद्वीप कौन सा है?", opts: ["अफ्रीका","उत्तरी अमेरिका","एशिया","यूरोप"], ans: 2 },
+  { q: "विश्व की सबसे लंबी नदी कौन सी है?", opts: ["अमेजन","नील","यांग्त्जे","मिसिसिपी"], ans: 1 },
+  { q: "विश्व का सबसे बड़ा देश (क्षेत्रफल में) कौन सा है?", opts: ["चीन","अमेरिका","कनाडा","रूस"], ans: 3 },
+  { q: "सहारा मरुस्थल किस महाद्वीप में है?", opts: ["एशिया","ऑस्ट्रेलिया","अफ्रीका","दक्षिण अमेरिका"], ans: 2 },
+  { q: "विश्व का सबसे ऊँचा पठार कौन सा है?", opts: ["दक्कन पठार","तिब्बत का पठार","ब्राजील का पठार","कोलोराडो पठार"], ans: 1 },
+  { q: "अमेजन नदी किस महासागर में गिरती है?", opts: ["प्रशांत महासागर","हिंद महासागर","अटलांटिक महासागर","आर्कटिक महासागर"], ans: 2 },
+  { q: "विश्व का सबसे छोटा देश कौन सा है?", opts: ["मोनाको","लिखेटेंस्टीन","वेटिकन सिटी","सैन मैरिनो"], ans: 2 },
+  { q: "भूमध्य रेखा (Equator) किस देश से होकर गुजरती है?", opts: ["भारत","ब्राजील","ऑस्ट्रेलिया","चीन"], ans: 1 },
+  { q: "विश्व की सबसे गहरी झील कौन सी है?", opts: ["कैस्पियन सागर","बैकाल झील","लेक सुपीरियर","टिटिकाका"], ans: 1 },
+  { q: "माउंट एवरेस्ट किन दो देशों की सीमा पर है?", opts: ["भारत और चीन","नेपाल और चीन","भारत और नेपाल","तिब्बत और भारत"], ans: 1 },
+
+  // Level 7 — भारतीय संस्कृति (60–69)
+  { q: "कत्थक नृत्य किस राज्य से संबंधित है?", opts: ["तमिलनाडु","केरल","उत्तर प्रदेश","ओडिशा"], ans: 2 },
+  { q: "भारत का सबसे पुराना वेद कौन सा है?", opts: ["सामवेद","यजुर्वेद","ऋग्वेद","अथर्ववेद"], ans: 2 },
+  { q: "उस्ताद बिस्मिल्लाह खान किस वाद्य यंत्र के लिए प्रसिद्ध थे?", opts: ["सितार","तबला","शहनाई","सरोद"], ans: 2 },
+  { q: "रामायण के रचयिता कौन हैं?", opts: ["तुलसीदास","वेद व्यास","वाल्मीकि","कालिदास"], ans: 2 },
+  { q: "भारत का सबसे बड़ा त्योहार दिवाली किससे जुड़ा है?", opts: ["रावण-वध","राम का अयोध्या वापसी","कृष्ण जन्म","होलिका दहन"], ans: 1 },
+  { q: "कोणार्क का सूर्य मंदिर किस राज्य में है?", opts: ["आंध्र प्रदेश","तमिलनाडु","ओडिशा","मध्यप्रदेश"], ans: 2 },
+  { q: "भरतनाट्यम नृत्य किस राज्य से है?", opts: ["केरल","तमिलनाडु","आंध्र प्रदेश","कर्नाटक"], ans: 1 },
+  { q: "रबींद्रनाथ टैगोर को नोबेल पुरस्कार किस कृति के लिए मिला?", opts: ["गीतांजलि","चोखेर बाली","गोरा","घरे बाइरे"], ans: 0 },
+  { q: "सत्यजित राय किस क्षेत्र में प्रसिद्ध थे?", opts: ["संगीत","चित्रकारी","फिल्म निर्देशन","साहित्य"], ans: 2 },
+  { q: "होली का त्योहार किस ऋतु में मनाया जाता है?", opts: ["शरद","वसंत","ग्रीष्म","वर्षा"], ans: 1 },
+
+  // Level 8 — विज्ञान और पर्यावरण (70–79)
+  { q: "पृथ्वी का सबसे बड़ा परत कौन सा है?", opts: ["भूपर्पटी","मैंटल","बाहरी क्रोड","आंतरिक क्रोड"], ans: 1 },
+  { q: "प्रकाश की गति लगभग कितनी है?", opts: ["1 लाख किमी/सेकंड","3 लाख किमी/सेकंड","10 लाख किमी/सेकंड","5 लाख किमी/सेकंड"], ans: 1 },
+  { q: "ओजोन परत किसे अवशोषित करती है?", opts: ["अवरक्त विकिरण","पराबैंगनी विकिरण","रेडियो तरंगें","ध्वनि तरंगें"], ans: 1 },
+  { q: "पृथ्वी के वायुमंडल की सबसे ऊँची परत कौन सी है?", opts: ["ट्रोपोस्फेयर","स्ट्रेटोस्फेयर","मेसोस्फेयर","एक्सोस्फेयर"], ans: 3 },
+  { q: "DNA की खोज किसने की?", opts: ["लुई पाश्चर","वॉटसन और क्रिक","ग्रेगर मेंडल","चार्ल्स डार्विन"], ans: 1 },
+  { q: "भारत का पहला उपग्रह कौन सा था?", opts: ["भास्कर","रोहिणी","आर्यभट्ट","इनसैट"], ans: 2 },
+  { q: "सौरमंडल में सबसे बड़ा ग्रह कौन सा है?", opts: ["शनि","बृहस्पति","यूरेनस","नेप्च्यून"], ans: 1 },
+  { q: "मानव शरीर में हड्डियों की संख्या कितनी है?", opts: ["196","206","216","226"], ans: 1 },
+  { q: "प्रकाश संश्लेषण के लिए कौन सा रंगद्रव्य जिम्मेदार है?", opts: ["मेलानिन","क्लोरोफिल","कैरोटीन","हीमोग्लोबिन"], ans: 1 },
+  { q: "विश्व पर्यावरण दिवस कब मनाया जाता है?", opts: ["5 जून","22 अप्रैल","16 सितंबर","21 मार्च"], ans: 0 },
+
+  // Level 9 — भारतीय राजनीति (80–89)
+  { q: "भारतीय संसद के कितने सदन हैं?", opts: ["एक","दो","तीन","चार"], ans: 1 },
+  { q: "भारत का उच्चतम न्यायालय कहाँ स्थित है?", opts: ["मुंबई","नई दिल्ली","कोलकाता","चेन्नई"], ans: 1 },
+  { q: "मौलिक अधिकार संविधान के किस भाग में हैं?", opts: ["भाग II","भाग III","भाग IV","भाग V"], ans: 1 },
+  { q: "राज्यसभा के सदस्यों का कार्यकाल कितने वर्षों का होता है?", opts: ["4 वर्ष","5 वर्ष","6 वर्ष","7 वर्ष"], ans: 2 },
+  { q: "भारत के संविधान में कितने मूल अधिकार हैं?", opts: ["5","6","7","8"], ans: 1 },
+  { q: "पंचायती राज की तीन परतें कौन सी हैं?", opts: ["ग्राम,ब्लॉक,जिला","तालुका,जिला,राज्य","ग्राम,तालुका,राज्य","ब्लॉक,तालुका,जिला"], ans: 0 },
+  { q: "भारत में लोकसभा चुनाव कितने वर्षों में होते हैं?", opts: ["4 वर्ष","5 वर्ष","6 वर्ष","3 वर्ष"], ans: 1 },
+  { q: "भारत के नियंत्रक एवं महालेखा परीक्षक को क्या कहते हैं?", opts: ["CAG","CBI","CVC","CAB"], ans: 0 },
+  { q: "संविधान की प्रस्तावना में 'समाजवाद' शब्द किस संशोधन से जोड़ा गया?", opts: ["42वाँ संशोधन","44वाँ संशोधन","52वाँ संशोधन","86वाँ संशोधन"], ans: 0 },
+  { q: "भारत के प्रधानमंत्री की नियुक्ति कौन करता है?", opts: ["लोकसभा अध्यक्ष","सुप्रीम कोर्ट","राष्ट्रपति","उपराष्ट्रपति"], ans: 2 },
+
+  // Level 10 — समसामयिक घटनाएं (90–99)
+  { q: "G20 शिखर सम्मेलन 2023 की अध्यक्षता किस देश ने की?", opts: ["चीन","अमेरिका","भारत","ब्राजील"], ans: 2 },
+  { q: "चंद्रयान-3 ने चाँद पर सफलतापूर्वक कब लैंडिंग की?", opts: ["2022","2023","2024","2021"], ans: 1 },
+  { q: "विश्व स्वास्थ्य संगठन (WHO) का मुख्यालय कहाँ है?", opts: ["न्यूयॉर्क","पेरिस","जिनेवा","वाशिंगटन"], ans: 2 },
+  { q: "भारत का सबसे बड़ा बंदरगाह कौन सा है?", opts: ["मुंबई बंदरगाह","चेन्नई बंदरगाह","जवाहरलाल नेहरू बंदरगाह","कोलकाता बंदरगाह"], ans: 2 },
+  { q: "संयुक्त राष्ट्र (UN) की स्थापना कब हुई?", opts: ["1944","1945","1946","1947"], ans: 1 },
+  { q: "भारत-पाक युद्ध 1971 में भारतीय सेना के प्रमुख कौन थे?", opts: ["जनरल करियप्पा","जनरल सैम मानेकशॉ","जनरल थिमैया","जनरल सुंदरजी"], ans: 1 },
+  { q: "यूनेस्को का मुख्यालय कहाँ है?", opts: ["जिनेवा","न्यूयॉर्क","पेरिस","लंदन"], ans: 2 },
+  { q: "भारत ने किस वर्ष चाँद पर पानी की खोज की घोषणा की?", opts: ["2007","2008","2009","2010"], ans: 2 },
+  { q: "ICC क्रिकेट विश्व कप 2023 कहाँ आयोजित हुआ?", opts: ["इंग्लैंड","ऑस्ट्रेलिया","भारत","दक्षिण अफ्रीका"], ans: 2 },
+  { q: "भारत ने पहला ओलंपिक स्वर्ण पदक किस खेल में जीता?", opts: ["कुश्ती","बैडमिंटन","हॉकी","निशानेबाजी"], ans: 2 }
+];
+
+// ===================== STATE =====================
+let state = {};
+function loadState() {
+  try { state = JSON.parse(localStorage.getItem('nova_kbw_state') || '{}'); } catch { state = {}; }
+  if (!state.levels) state.levels = Array(10).fill(null).map(() => ({ unlocked: false, completed: false, score: 0 }));
+  if (!state.levels[0]) state.levels[0] = { unlocked: false, completed: false, score: 0 };
+  state.levels[0].unlocked = true;
+  if (!state.totalScore) state.totalScore = 0;
+}
+function saveState() { localStorage.setItem('nova_kbw_state', JSON.stringify(state)); }
+
+// Quiz runtime
+let quizLevel = 0, quizQuestions = [], quizIndex = 0, quizScore = 0;
+let quizWrong = 0, quizAnswers = [], quizTimer = null, quizSecondsLeft = 300, quizStartTime = 0;
+let selectedOpt = null, answered = false;
+
+// ===================== UI HELPERS =====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove('show'); }, 2600);
+}
+
+// ===================== AUTH =====================
+let tempMobile = '';
+function sendOTP() {
+  const v = document.getElementById('mobile-input').value.trim();
+  if (!/^\d{10}$/.test(v)) { showToast('कृपया 10 अंकों का सही नंबर दर्ज करें', 'error'); return; }
+  tempMobile = v;
+  document.getElementById('otp-phone-display').textContent = '+91 ' + v;
+  showScreen('screen-otp');
+  showToast('OTP भेजा गया! (Demo: 123456)', 'success');
+}
+function verifyOTP() {
+  const v = document.getElementById('otp-input').value.trim();
+  if (v !== '123456') { showToast('OTP गलत है। पुनः प्रयास करें।', 'error'); return; }
+  if (state.name) { renderDashboard(); showScreen('screen-dashboard'); }
+  else showScreen('screen-profile');
+}
+function saveProfile() {
+  const name = document.getElementById('profile-name').value.trim();
+  const age = parseInt(document.getElementById('profile-age').value);
+  if (!name || name.length < 2) { showToast('कृपया अपना नाम दर्ज करें', 'error'); return; }
+  if (!age || age < 10 || age > 100) { showToast('कृपया सही उम्र दर्ज करें', 'error'); return; }
+  state.name = name; state.age = age; state.mobile = tempMobile;
+  saveState(); renderDashboard(); showScreen('screen-dashboard');
+  showToast('स्वागत है, ' + name + '! 🎯', 'success');
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard() {
+  loadState();
+  // Profile chip
+  const initials = (state.name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const currentLevel = state.levels.findIndex(l => !l.completed) + 1 || 10;
+  document.getElementById('profile-chip-wrap').innerHTML = `
+    <div class="profile-chip">
+      <div class="profile-avatar">${initials}</div>
+      <div>
+        <div class="profile-name">${state.name || 'प्रतिभागी'}</div>
+        <div class="profile-meta">स्तर ${currentLevel} · ${state.age} वर्ष</div>
+      </div>
+    </div>`;
+  document.getElementById('total-score-display').textContent = state.totalScore || 0;
+
+  // Levels grid
+  const grid = document.getElementById('levels-grid');
+  grid.innerHTML = '';
+  state.levels.forEach((lv, i) => {
+    let cls = 'level-card locked', statusText = '🔒 बंद', statusCls = 'status-locked';
+    if (lv.completed) { cls = 'level-card completed'; statusText = '✓ पूर्ण'; statusCls = 'status-completed'; }
+    else if (lv.unlocked) {
+      const isFirst = !state.levels.slice(0, i).some(l => !l.completed);
+      cls = 'level-card unlocked' + (lv.unlocked && !lv.completed && i === state.levels.findIndex(l => l.unlocked && !l.completed) ? ' current' : '');
+      statusText = '▶ शुरू करें'; statusCls = 'status-current';
+      if (!isFirst && lv.unlocked && !lv.completed) { statusText = '▶ खेलें'; statusCls = 'status-unlocked'; }
+    }
+    grid.innerHTML += `
+      <div class="${cls}" onclick="startLevel(${i})">
+        <div class="level-num">स्तर ${i + 1} · 10 प्रश्न</div>
+        <div class="level-title">${LEVELS[i].title}</div>
+        <div class="level-desc">${LEVELS[i].desc}</div>
+        <div class="level-footer">
+          <div class="level-status ${statusCls}">${statusText}</div>
+          <div class="level-score">${lv.completed ? '<span>' + lv.score + '</span>/10' : '—/10'}</div>
+        </div>
+      </div>`;
+  });
+}
+
+// ===================== QUIZ =====================
+function startLevel(levelIndex) {
+  if (!state.levels[levelIndex].unlocked) { showToast('यह स्तर अभी बंद है। पहले पिछला स्तर पूरा करें।', 'error'); return; }
+  quizLevel = levelIndex;
+  const base = levelIndex * 10;
+  const pool = ALL_QUESTIONS.slice(base, base + 10).map((q, i) => ({ ...q, origIdx: base + i }));
+  quizQuestions = shuffle(pool);
+  quizIndex = 0; quizScore = 0; quizWrong = 0; quizAnswers = [];
+  selectedOpt = null; answered = false;
+  quizSecondsLeft = 300;
+  quizStartTime = Date.now();
+  document.getElementById('quiz-level-badge').textContent = 'स्तर ' + (levelIndex + 1) + ' — ' + LEVELS[levelIndex].title;
+  renderQuestion();
+  startTimer();
+  showScreen('screen-quiz');
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function renderQuestion() {
+  const q = quizQuestions[quizIndex];
+  const letters = ['A', 'B', 'C', 'D'];
+  selectedOpt = null; answered = false;
+  document.getElementById('q-current').textContent = quizIndex + 1;
+  document.getElementById('q-progress-fill').style.width = ((quizIndex + 1) / 10 * 100) + '%';
+  document.getElementById('live-correct').textContent = quizScore;
+  document.getElementById('live-wrong').textContent = quizWrong;
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true; btn.classList.remove('active-next');
+  btn.textContent = quizIndex < 9 ? 'अगला →' : 'परिणाम देखें';
+
+  document.getElementById('quiz-main').innerHTML = `
+    <div class="question-number fade-up">प्रश्न ${quizIndex + 1} / 10</div>
+    <div class="question-text fade-up-delay">${q.q}</div>
+    <div class="options-grid fade-up-delay">
+      ${q.opts.map((o, i) => `
+        <button class="option-btn" onclick="selectOption(${i})" id="opt-${i}">
+          <div class="option-letter">${letters[i]}</div>
+          <div class="option-text">${o}</div>
+        </button>`).join('')}
+    </div>`;
+}
+
+function selectOption(i) {
+  if (answered) return;
+  selectedOpt = i;
+  answered = true;
+  const q = quizQuestions[quizIndex];
+  const correct = q.ans;
+  const isCorrect = i === correct;
+  if (isCorrect) quizScore++; else quizWrong++;
+  quizAnswers.push({ q: q.q, opts: q.opts, correct, chosen: i, isCorrect });
+
+  for (let j = 0; j < 4; j++) {
+    const btn = document.getElementById('opt-' + j);
+    if (!btn) continue;
+    btn.disabled = true;
+    if (j === correct) btn.classList.add('correct');
+    else if (j === i && !isCorrect) btn.classList.add('wrong');
+  }
+  document.getElementById('live-correct').textContent = quizScore;
+  document.getElementById('live-wrong').textContent = quizWrong;
+  const nb = document.getElementById('btn-next');
+  nb.disabled = false; nb.classList.add('active-next');
+}
+
+function nextQuestion() {
+  if (!answered) { showToast('कोई विकल्प चुनें।', 'error'); return; }
+  quizIndex++;
+  if (quizIndex >= 10) { endQuiz(); return; }
+  renderQuestion();
+}
+
+function startTimer() {
+  clearInterval(quizTimer);
+  updateTimerDisplay();
+  quizTimer = setInterval(() => {
+    quizSecondsLeft--;
+    updateTimerDisplay();
+    if (quizSecondsLeft <= 0) { clearInterval(quizTimer); endQuiz(true); }
+  }, 1000);
+}
+function updateTimerDisplay() {
+  const m = Math.floor(quizSecondsLeft / 60).toString().padStart(2, '0');
+  const s = (quizSecondsLeft % 60).toString().padStart(2, '0');
+  const el = document.getElementById('quiz-timer');
+  if (!el) return;
+  el.textContent = m + ':' + s;
+  el.className = 'quiz-timer' + (quizSecondsLeft <= 30 ? ' danger' : quizSecondsLeft <= 60 ? ' warning' : '');
+}
+
+function endQuiz(timedOut = false) {
+  clearInterval(quizTimer);
+  // Fill skipped questions
+  while (quizAnswers.length < 10) {
+    const q = quizQuestions[quizAnswers.length];
+    quizAnswers.push({ q: q.q, opts: q.opts, correct: q.ans, chosen: -1, isCorrect: false });
+    if (!quizAnswers[quizAnswers.length-1].isCorrect) quizWrong++;
+  }
+  const timeTaken = Math.round((Date.now() - quizStartTime) / 1000);
+  const passed = quizScore >= 5;
+  // Update state
+  loadState();
+  if (passed) {
+    state.levels[quizLevel].completed = true;
+    state.levels[quizLevel].score = Math.max(state.levels[quizLevel].score || 0, quizScore);
+    if (quizLevel + 1 < 10) state.levels[quizLevel + 1].unlocked = true;
+    state.totalScore = (state.totalScore || 0) + quizScore;
+  } else {
+    state.levels[quizLevel].score = quizScore;
+  }
+  saveState();
+  renderResult(passed, timeTaken, timedOut);
+  showScreen('screen-result');
+}
+
+// ===================== RESULT =====================
+function renderResult(passed, timeTaken, timedOut) {
+  const mins = Math.floor(timeTaken / 60), secs = timeTaken % 60;
+  const timeStr = (mins > 0 ? mins + ' मिनट ' : '') + secs + ' सेकंड';
+  const letters = ['A', 'B', 'C', 'D'];
+  const answersHTML = quizAnswers.map((a, i) => `
+    <div class="answer-row">
+      <div class="answer-dot ${a.isCorrect ? 'correct' : 'wrong'}">${a.isCorrect ? '✓' : '✗'}</div>
+      <div>
+        <div class="answer-q">${i + 1}. ${a.q}</div>
+        <div class="answer-detail">
+          ${!a.isCorrect ? `<span class="your">आपका: ${a.chosen >= 0 ? a.opts[a.chosen] : 'अनुत्तरित'} &nbsp;·&nbsp; </span>` : ''}
+          <span class="right">सही: ${a.opts[a.correct]}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('result-content').innerHTML = `
+    <div class="result-header fade-up">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:0.75rem;">
+        स्तर ${quizLevel + 1} — ${LEVELS[quizLevel].title}
+      </div>
+      <div class="result-outcome ${passed ? 'pass' : 'fail'}">
+        ${passed ? 'शानदार!<br>आप आगे बढ़े! 🎯' : 'अगली बार<br>जरूर जीतेंगे'}
+      </div>
+      <div class="result-meta">
+        ${timedOut ? '⏱ समय समाप्त · ' : ''}${timeStr} में पूरा किया
+        ${passed ? '&nbsp;· अगला स्तर खुल गया' : '&nbsp;· पुनः प्रयास करें (5+ सही चाहिए)'}
+      </div>
+    </div>
+    <div class="result-stats fade-up-delay">
+      <div class="stat-card">
+        <div class="stat-value green">${quizScore}</div>
+        <div class="stat-label">सही उत्तर</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value red">${quizWrong}</div>
+        <div class="stat-label">गलत उत्तर</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--white);font-size:1.4rem;">${timeStr}</div>
+        <div class="stat-label">लिया गया समय</div>
+      </div>
+    </div>
+    <div class="result-answers fade-up">
+      <div class="result-answers-title">उत्तर समीक्षा</div>
+      ${answersHTML}
+    </div>
+    <div class="result-actions fade-up">
+      ${!passed ? `<button class="btn-secondary" onclick="startLevel(${quizLevel})">↺ पुनः प्रयास</button>` : ''}
+      <button class="btn-secondary" onclick="goDashboard()">↩ डैशबोर्ड</button>
+      ${passed && quizLevel < 9 ? `<button class="btn-primary" style="flex:1;" onclick="startLevel(${quizLevel + 1})">अगला स्तर →</button>` : ''}
+    </div>`;
+}
+
+function goDashboard() { renderDashboard(); showScreen('screen-dashboard'); }
+
+// ===================== INIT =====================
+loadState();
+if (state.name) { renderDashboard(); showScreen('screen-dashboard'); }
+else showScreen('screen-mobile');
+
+// Enter key support
+document.getElementById('mobile-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendOTP(); });
+document.getElementById('otp-input').addEventListener('keydown', e => { if (e.key === 'Enter') verifyOTP(); });
+</script>
+</body>
+</html>
